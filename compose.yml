@@ -1,0 +1,28 @@
+name: omniroute-hybrid
+
+services:
+  omniroute:
+    image: ghcr.io/diegosouzapw/omniroute:3.8.2
+    volumes:
+      - omniroute_data:/app/data
+    environment:
+      - NODE_ENV=production
+      - DATA_DIR=/app/data
+      - FETCH_TIMEOUT_MS=60000
+      - FETCH_BODY_TIMEOUT_MS=60000
+      - STREAM_IDLE_TIMEOUT_MS=60000
+      - OMNIROUTE_API_KEY
+    ports:
+      - "20128:20128"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "node", "healthcheck.mjs"]
+      timeout: 10s
+      interval: 5s
+      retries: 12
+      start_period: 15s
+    restart: unless-stopped
+
+volumes:
+  omniroute_data:
