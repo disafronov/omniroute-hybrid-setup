@@ -212,17 +212,24 @@ class TestMain:
     @patch("main.req")
     @patch("main.run")
     def test_models_already_pulled(self, mock_run, mock_req):
+        import main as m
+
+        # Mock `ollama list` to report all required models as present.
+        # Names are derived from the module so the test does not depend on
+        # the ambient environment (.env values exported by the Makefile).
         mock_run.return_value.stdout = (
             "NAME\tID\n"
-            "qwen2.5-coder:14b\tabc\n"
-            "qwen2.5:7b\tdef\n"
-            "deepseek-r1:14b\tghi\n"
+            f"{m.LOCAL_CODING}\tabc\n"
+            f"{m.LOCAL_FAST}\tdef\n"
+            f"{m.LOCAL_REASONING}\tghi\n"
         )
         mock_req.side_effect = build_side_effect()
 
-        import main as m
-
         m.main()
+
+        # Every model already exists, so no `ollama pull` must be issued.
+        pull_calls = [c for c in mock_run.call_args_list if "pull" in c.args[0]]
+        assert pull_calls == []
 
     @patch("main.req")
     @patch("main.run")
