@@ -194,7 +194,7 @@ TIERS=(
 )
 
 for entry in "${TIERS[@]}"; do
-  IFS=":" read -r name cloud_model local_model <<< "$entry"
+  IFS="|" read -r name cloud_model local_model <<< "$entry"
   echo "Processing combo: $name"
 
   local_model_str="${OLLAMA_NODE_ID}/${local_model}"
