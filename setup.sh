@@ -13,7 +13,7 @@ set -euo pipefail
 LOCAL_API_KEY="${LOCAL_API_KEY:?set LOCAL_API_KEY (local omniroute API key)}"
 CLOUD_API_KEY="${CLOUD_API_KEY:?set CLOUD_API_KEY (upstream omniroute API key)}"
 LOCAL_BASE_URL="${LOCAL_BASE_URL:-http://127.0.0.1:20128}"
-CLOUD_BASE_URL="${CLOUD_BASE_URL:-https://omniroute.cyberbrain.cc/v1}"
+CLOUD_BASE_URL="${CLOUD_BASE_URL:?set CLOUD_BASE_URL (upstream omniroute base URL)}"
 LOCAL_OLLAMA_URL="${LOCAL_OLLAMA_URL:-http://host.docker.internal:11434/v1}"
 
 LOCAL_CODING="${LOCAL_CODING:-qwen2.5-coder:14b}"
