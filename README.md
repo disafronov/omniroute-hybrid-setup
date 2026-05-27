@@ -5,7 +5,7 @@ with fallback to local ollama models when the cloud is unavailable.
 
 ## How it works
 
-```
+```text
 Claude Code (or any client)
   → localhost:20128 (Docker: omniroute container)
     → auto/best-* combo (priority routing)
@@ -15,39 +15,51 @@ Claude Code (or any client)
 
 ## Requirements
 
+- [uv](https://docs.astral.sh/uv/)
 - Docker (compose v2)
 - [ollama](https://ollama.com/) with models pulled
 - Access to an upstream OmniRoute API
 
-## Quick start
-
-```bash
-# 1. Start local OmniRoute
-#    OMNIROUTE_API_KEY — from shell env (not from project .env)
-OMNIROUTE_API_KEY=ololo docker compose up -d
-
-# 2. Make sure ollama is running and models are available
-ollama list
-
-# 3. Configure combos (cloud → ollama)
-LOCAL_API_KEY=ololo CLOUD_API_KEY="sk-..." bash setup.sh
-```
-
 ## Combos
 
-The script creates 3 priority combos with a primary cloud target and ollama fallback:
+The script creates 3 priority combos with a primary cloud target and ollama fallback.
+Local models are set via `LOCAL_CODING`, `LOCAL_FAST`, `LOCAL_REASONING` — see [Environment variables](#environment-variables).
 
-| Combo                | Cloud model              | Local model         |
-|----------------------|--------------------------|---------------------|
-| `auto/best-coding`   | `auto/best-coding`       | `qwen2.5-coder:14b` |
-| `auto/best-fast`     | `auto/best-fast`         | `qwen2.5:7b`        |
-| `auto/best-reasoning`| `auto/best-reasoning`    | `deepseek-r1:14b`   |
+| Combo | Cloud model | Env var |
+| --- | --- | --- |
+| `auto/best-coding` | `auto/best-coding` | `LOCAL_CODING` |
+| `auto/best-fast` | `auto/best-fast` | `LOCAL_FAST` |
+| `auto/best-reasoning` | `auto/best-reasoning` | `LOCAL_REASONING` |
 
 ## Environment variables
 
-| Variable           | Required | Description                              |
-|--------------------|----------|------------------------------------------|
-| `CLOUD_API_KEY`    | **yes**  | API key for the upstream cloud OmniRoute |
-| `LOCAL_API_KEY`    | **yes**  | API key for the local OmniRoute instance |
+All variables — including models and endpoints — are set in [`.env.example`](.env.example).
+Copy it and fill in your keys & other values:
 
-Tip: use a `.env` file to store `LOCAL_API_KEY`. Docker compose reads it automatically.
+```bash
+cp .env.example .env
+```
+
+| Variable | Description |
+| --- | --- |
+| `LOCAL_API_KEY` | API key for the local OmniRoute instance |
+| `CLOUD_API_KEY` | API key for the upstream cloud OmniRoute |
+| `CLOUD_BASE_URL` | Base URL of the upstream cloud OmniRoute |
+| `LOCAL_BASE_URL` | Local OmniRoute URL |
+| `LOCAL_OLLAMA_URL` | Ollama endpoint |
+| `LOCAL_CODING` | Ollama model for coding combo |
+| `LOCAL_FAST` | Ollama model for fast combo |
+| `LOCAL_REASONING` | Ollama model for reasoning combo |
+
+## Run
+
+```bash
+# 1. Install runtime dependencies
+make runtime
+
+# 2. Start local OmniRoute (requires .env — see above)
+docker compose up -d
+
+# 3. Configure combos
+make run
+```
