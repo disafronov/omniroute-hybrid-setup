@@ -1,0 +1,80 @@
+[project]
+name = "omniroute-hybrid-setup"
+version = "0.1.0"
+description = "OmniRoute hybrid setup — cloud + local ollama fallback"
+readme = "README.md"
+requires-python = ">=3.14"
+authors = [
+    {name = "Dmitrii Safronov", email = "dhameoelin+omniroute-hybrid-setup@gmail.com"}
+]
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-xdist>=3.6.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "flake8>=6.0.0",
+    "flake8-pyproject>=1.2.3",
+    "mypy>=1.18.1",
+    "bandit>=1.7.5",
+    "pre-commit>=3.5.0",
+    "vulture>=2.16",
+    "pip-audit>=2.10.0",
+]
+
+[tool.isort]
+profile = "black"
+
+[tool.black]
+line-length = 88
+target-version = ["py314"]
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503"]
+exclude = [".venv", "htmlcov"]
+
+[tool.mypy]
+exclude = "tests/"
+strict = true
+warn_unused_configs = true
+warn_unreachable = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "--strict-markers -n auto --cov=. --cov-report=term-missing"
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.coverage.run]
+source = ["."]
+omit = ["tests/*"]
+branch = true
+
+[tool.coverage.report]
+fail_under = 100
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.:",
+    "@(abc\\.)?abstractmethod",
+    "pragma: no cover"
+]
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+[tool.bandit]
+exclude_dirs = [".venv", "htmlcov", "tests"]
+
+[tool.vulture]
+min_confidence = 80
+exclude = [".venv", "tests"]
+ignore_names = ["cls"]
+paths = ["."]
