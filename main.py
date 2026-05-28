@@ -129,7 +129,7 @@ def main() -> None:
         existing = [
             line.split()[0] for line in r.stdout.strip().split("\n")[1:] if line.strip()
         ]
-    except CalledProcessError, FileNotFoundError:
+    except (CalledProcessError, FileNotFoundError):
         existing = []
     for model in [LOCAL_CODING, LOCAL_FAST, LOCAL_REASONING]:
         if model in existing:
@@ -203,7 +203,6 @@ def main() -> None:
             "authType": "apikey",
             "apiKey": "empty",
             "priority": 1,
-            "providerSpecificData": {"disableStreamOptions": True},
         },
     )
 
@@ -272,18 +271,62 @@ def main() -> None:
 
     print()
     print("=== Done ===")
+
+    # ── Step 4: Smoke test ──
+    print("--- Step 4: Smoke test ---")
+
+    import urllib.request as url_req
+
+    for model_name, combo_name in [
+        (LOCAL_FAST, "auto/best-fast"),
+        (LOCAL_CODING, "auto/best-coding"),
+    ]:
+        print(f"  Testing: {combo_name} ({model_name})")
+        headers = {
+            "Authorization": f"Bearer {API_KEY}",
+            "Content-Type": "application/json",
+        }
+        base_body = {
+            "model": combo_name,
+            "messages": [{"role": "user", "content": "say hi in 2 words"}],
+        }
+
+        try:
+            body = {**base_body, "stream": False}
+            r = url_req.Request(LOCAL_URL + "/v1/chat/completions", data=json.dumps(body).encode(), headers=headers, method="POST")
+            with urllib.request.urlopen(r, timeout=120) as resp:
+                data = json.loads(resp.read())
+            content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
+            if content:
+                print(f"    ✓ non-streaming: {content!r}")
+            else:
+                print(f"    ✗ non-streaming: empty content")
+                continue
+        except Exception as e:
+            print(f"    ✗ non-streaming: {e}")
+            continue
+
+        try:
+            body = {**base_body, "stream": True}
+            r = url_req.Request(LOCAL_URL + "/v1/chat/completions", data=json.dumps(body).encode(), headers=headers, method="POST")
+            with urllib.request.urlopen(r, timeout=120) as resp:
+                first_line = resp.readline().decode().strip()
+            if first_line.startswith("data: ") and "choices" in first_line:
+                print(f"    ✓ streaming: first chunk received")
+            else:
+                print(f"    ? streaming: unexpected first line: {first_line[:80]}")
+        except Exception as e:
+            print(f"    ✗ streaming: {e}")
+
     print()
-    print("To test:")
-    print(
-        f"  curl -s"
-        f" -H 'Authorization: Bearer {API_KEY}'"
-        f" -H 'Content-Type: application/json' \\"
-    )
-    print(
-        '    -d \'{"model":"auto/best-coding",'
-        '"messages":[{"role":"user","content":"hi"}]}\' \\'
-    )
-    print(f"    {LOCAL_URL}/v1/responses | python3 -m json.tool")
+
+    print("=== Done ===")
+
+    print()
+    print("Manual smoke test:")
+    print(f"  curl -s -H 'Authorization: Bearer {API_KEY}' -H 'Content-Type: application/json' \\")
+    print(f"    -d '{{\"model\":\"auto/best-fast\",\"messages\":[{{\"role\":\"user\",\"content\":\"hi\"}}],\"stream\":false}}' \\")
+    print(f"    {LOCAL_URL}/v1/chat/completions | python3 -m json.tool")
 
 
 if __name__ == "__main__":
