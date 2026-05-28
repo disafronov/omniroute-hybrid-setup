@@ -55,7 +55,7 @@ test: ## Run unit tests (excludes integration)
 
 smoke-test: ## Run integration smoke tests (requires running services)
 	@echo "Running integration smoke tests..."
-	uv run python -m pytest tests/test_integration.py -v -p no:cov --no-header
+	uv run python -m pytest tests/test_integration.py -v -o "addopts=" --no-header
 
 # Combined operations
 audit: ## Check dependencies for known vulnerabilities
