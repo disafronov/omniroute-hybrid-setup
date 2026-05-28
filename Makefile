@@ -49,9 +49,13 @@ dead-code: ## Check for dead code using vulture
 	uv run vulture .
 
 # Testing
-test: ## Run tests with coverage
-	@echo "Running tests with coverage..."
+test: ## Run unit tests (excludes integration)
+	@echo "Running unit tests with coverage..."
 	$(PYTEST_CMD) $(COVERAGE_OPTS)
+
+smoke-test: ## Run integration smoke tests (requires running services)
+	@echo "Running integration smoke tests..."
+	uv run python -m pytest tests/test_integration.py -v -p no:cov --no-header
 
 # Combined operations
 audit: ## Check dependencies for known vulnerabilities
