@@ -46,7 +46,10 @@ warn_unreachable = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
-addopts = "--strict-markers -n auto --cov=. --cov-report=term-missing"
+addopts = "--strict-markers -n auto --cov=. --cov-report=term-missing -m 'not integration'"
+markers = [
+    "integration: marks tests that require running OmniRoute + Ollama",
+]
 filterwarnings = ["ignore::DeprecationWarning"]
 
 [tool.coverage.run]
