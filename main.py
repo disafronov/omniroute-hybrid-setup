@@ -18,6 +18,7 @@ OLLAMA_URL = os.environ.get("LOCAL_OLLAMA_URL", "http://host.docker.internal:114
 LOCAL_CODING = os.environ.get("LOCAL_CODING")
 LOCAL_FAST = os.environ.get("LOCAL_FAST")
 LOCAL_REASONING = os.environ.get("LOCAL_REASONING")
+LOCAL_VISION = os.environ.get("LOCAL_VISION")
 
 
 def fail(msg: str) -> NoReturn:
@@ -106,6 +107,8 @@ def main() -> None:
         fail("set LOCAL_FAST (ollama model for fast combo)")
     if not LOCAL_REASONING:
         fail("set LOCAL_REASONING (ollama model for reasoning combo)")
+    if not LOCAL_VISION:
+        fail("set LOCAL_VISION (ollama model for vision combo)")
     if (
         API_KEY is None
         or CLOUD_KEY is None
@@ -114,6 +117,7 @@ def main() -> None:
         or LOCAL_CODING is None
         or LOCAL_FAST is None
         or LOCAL_REASONING is None
+        or LOCAL_VISION is None
     ):
         raise AssertionError("env vars not set")
 
@@ -129,9 +133,9 @@ def main() -> None:
         existing = [
             line.split()[0] for line in r.stdout.strip().split("\n")[1:] if line.strip()
         ]
-    except (CalledProcessError, FileNotFoundError):
+    except CalledProcessError, FileNotFoundError:
         existing = []
-    for model in [LOCAL_CODING, LOCAL_FAST, LOCAL_REASONING]:
+    for model in [LOCAL_CODING, LOCAL_FAST, LOCAL_REASONING, LOCAL_VISION]:
         if model in existing:
             print(f"  {model} already exists, skipping")
         else:
@@ -145,6 +149,7 @@ def main() -> None:
     print(f"Coding model:      {LOCAL_CODING}")
     print(f"Fast model:        {LOCAL_FAST}")
     print(f"Reasoning model:   {LOCAL_REASONING}")
+    print(f"Vision model:      {LOCAL_VISION}")
     print()
 
     # ── Step 1: Cloud parent provider node + connection ──
@@ -213,11 +218,34 @@ def main() -> None:
     # ── Step 3: Create/update tier combos ──
     print("--- Step 3: Tier combos ---")
 
-    TIERS = [
-        ("auto/best-coding", "auto/best-coding", LOCAL_CODING),
-        ("auto/best-fast", "auto/best-fast", LOCAL_FAST),
-        ("auto/best-reasoning", "auto/best-reasoning", LOCAL_REASONING),
-    ]
+    # All 21 auto-combo names → which ollama model to fallback to
+    COMBO_FALLBACK: dict[str, str] = {
+        # coding variants → LOCAL_CODING
+        "auto/best-coding": LOCAL_CODING,
+        "auto/best-coding-fast": LOCAL_CODING,
+        "auto/pro-coding": LOCAL_CODING,
+        "auto/coding": LOCAL_CODING,
+        # fast/cheap/offline variants → LOCAL_FAST
+        "auto/best-fast": LOCAL_FAST,
+        "auto/pro-fast": LOCAL_FAST,
+        "auto/fast": LOCAL_FAST,
+        "auto/cheap": LOCAL_FAST,
+        "auto/offline": LOCAL_FAST,
+        # vision variants → LOCAL_VISION
+        "auto/best-vision": LOCAL_VISION,
+        "auto/pro-vision": LOCAL_VISION,
+        # everything else → LOCAL_REASONING
+        "auto": LOCAL_REASONING,
+        "auto/best-reasoning": LOCAL_REASONING,
+        "auto/best-chat": LOCAL_REASONING,
+        "auto/pro-reasoning": LOCAL_REASONING,
+        "auto/pro-chat": LOCAL_REASONING,
+        "auto/chat": LOCAL_REASONING,
+        "auto/claude-opus": LOCAL_REASONING,
+        "auto/claude-sonnet": LOCAL_REASONING,
+        "auto/smart": LOCAL_REASONING,
+        "auto/lkgp": LOCAL_REASONING,
+    }
 
     combos_data = req("GET", "/api/combos")
     combo_list = (
@@ -226,7 +254,7 @@ def main() -> None:
         else combos_data
     )
 
-    for name, cloud_model, local_model in TIERS:
+    for name, local_model in COMBO_FALLBACK.items():
         print(f"Processing combo: {name}")
 
         safe = name.replace("/", "-")
@@ -238,7 +266,7 @@ def main() -> None:
                 {
                     "id": f"{safe}-model-1-cloud",
                     "kind": "model",
-                    "model": f"{cloud_node_id}/{cloud_model}",
+                    "model": f"{cloud_node_id}/{name}",
                     "providerId": cloud_node_id,
                     "connectionId": cloud_conn_id,
                     "weight": 100,
@@ -273,8 +301,17 @@ def main() -> None:
     print("=== Done ===")
     print()
     print("Manual smoke test:")
-    print(f"  curl -s -H 'Authorization: Bearer {API_KEY}' -H 'Content-Type: application/json' \\")
-    print(f"    -d '{{\"model\":\"auto/best-fast\",\"messages\":[{{\"role\":\"user\",\"content\":\"hi\"}}],\"stream\":false}}' \\")
+    tokens = (
+        "curl -s",
+        f"-H 'Authorization: Bearer {API_KEY}'",
+        "-H 'Content-Type: application/json'",
+    )
+    print(f"  {' '.join(tokens)} \\")
+    print(
+        '    -d \'{"model":"auto/best-fast",'
+        '"messages":[{"role":"user","content":"hi"}],'
+        '"stream":false}\' \\'
+    )
     print(f"    {LOCAL_URL}/v1/chat/completions | python3 -m json.tool")
 
 

@@ -13,6 +13,7 @@ os.environ.setdefault("LOCAL_BASE_URL", "http://127.0.0.1:20128")
 os.environ.setdefault("LOCAL_CODING", "qwen2.5-coder:14b")
 os.environ.setdefault("LOCAL_FAST", "qwen2.5:7b")
 os.environ.setdefault("LOCAL_REASONING", "deepseek-r1:14b")
+os.environ.setdefault("LOCAL_VISION", "qwen2.5-vl:7b")
 
 from main import (  # noqa: E402
     LOCAL_URL,
@@ -209,6 +210,15 @@ class TestMain:
 
             m.main()
 
+    @patch("main.LOCAL_VISION", None)
+    @patch("main.req")
+    @patch("main.run")
+    def test_missing_local_vision(self, mock_run, mock_req):
+        with pytest.raises(SystemExit):
+            import main as m
+
+            m.main()
+
     @patch("main.req")
     @patch("main.run")
     def test_models_already_pulled(self, mock_run, mock_req):
@@ -222,6 +232,7 @@ class TestMain:
             f"{m.LOCAL_CODING}\tabc\n"
             f"{m.LOCAL_FAST}\tdef\n"
             f"{m.LOCAL_REASONING}\tghi\n"
+            f"{m.LOCAL_VISION}\tjkl\n"
         )
         mock_req.side_effect = build_side_effect()
 
@@ -272,6 +283,7 @@ class TestMain:
     def test_ollama_list_fails(self, mock_run, mock_req):
         mock_run.side_effect = [
             CalledProcessError(1, ["ollama", "list"]),
+            MagicMock(),
             MagicMock(),
             MagicMock(),
             MagicMock(),
