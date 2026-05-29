@@ -22,14 +22,15 @@ Claude Code (or any client)
 
 ## Combos
 
-The script creates 3 priority combos with a primary cloud target and ollama fallback.
-Local models are set via `LOCAL_CODING`, `LOCAL_FAST`, `LOCAL_REASONING` — see [Environment variables](#environment-variables).
+The script creates priority combos with a primary cloud target and ollama fallback.
+Local models are set via `LOCAL_CODING`, `LOCAL_FAST`, `LOCAL_REASONING`, `LOCAL_VISION` — see [Environment variables](#environment-variables).
 
 | Combo | Cloud model | Env var |
 | --- | --- | --- |
 | `auto/best-coding` | `auto/best-coding` | `LOCAL_CODING` |
 | `auto/best-fast` | `auto/best-fast` | `LOCAL_FAST` |
 | `auto/best-reasoning` | `auto/best-reasoning` | `LOCAL_REASONING` |
+| `auto/best-vision` | `auto/best-vision` | `LOCAL_VISION` |
 
 ## Environment variables
 
@@ -50,6 +51,7 @@ cp .env.example .env
 | `LOCAL_CODING` | Ollama model for coding combo |
 | `LOCAL_FAST` | Ollama model for fast combo |
 | `LOCAL_REASONING` | Ollama model for reasoning combo |
+| `LOCAL_VISION` | Ollama model for vision combo |
 
 ## Run
 
