@@ -1,4 +1,5 @@
 """Integration smoke tests — require running OmniRoute + Ollama."""
+
 import json
 import os
 import urllib.request
@@ -77,9 +78,9 @@ class TestStreaming:
         with urllib.request.urlopen(req, timeout=120) as resp:
             first_line = resp.readline().decode().strip()
 
-        assert first_line.startswith("data: "), (
-            f"expected SSE data line, got: {first_line[:80]}"
-        )
+        assert first_line.startswith(
+            "data: "
+        ), f"expected SSE data line, got: {first_line[:80]}"
         payload = json.loads(first_line.removeprefix("data: "))
         assert "choices" in payload, "first SSE chunk missing choices"
 
@@ -95,8 +96,8 @@ class TestStreaming:
         with urllib.request.urlopen(req, timeout=120) as resp:
             first_line = resp.readline().decode().strip()
 
-        assert first_line.startswith("data: "), (
-            f"expected SSE data line, got: {first_line[:80]}"
-        )
+        assert first_line.startswith(
+            "data: "
+        ), f"expected SSE data line, got: {first_line[:80]}"
         payload = json.loads(first_line.removeprefix("data: "))
         assert "choices" in payload, "first SSE chunk missing choices"
