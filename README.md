@@ -1,6 +1,6 @@
 # omniroute-hybrid-setup
 
-Local OmniRoute (Docker) acting as a proxy in front of a cloud OmniRoute
+Local [OmniRoute](https://github.com/diegosouzapw/OmniRoute) (Docker) acting as a proxy in front of a cloud one
 with fallback to local ollama models when the cloud is unavailable.
 
 ## How it works
