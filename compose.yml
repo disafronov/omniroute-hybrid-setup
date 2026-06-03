@@ -2,7 +2,7 @@ name: omniroute-hybrid
 
 services:
   omniroute:
-    image: ghcr.io/diegosouzapw/omniroute:3.8.7
+    image: ghcr.io/diegosouzapw/omniroute:${OMNIROUTE_VERSION:-latest}
     volumes:
       - omniroute_data:/app/data
     environment:
