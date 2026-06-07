@@ -8,11 +8,13 @@ import pytest
 
 pytestmark = pytest.mark.integration
 
-LOCAL_URL = os.environ.get("LOCAL_BASE_URL", "http://127.0.0.1:20128")
-LOCAL_API_KEY = os.environ.get("LOCAL_API_KEY")
+LOCAL_URL = os.environ.get("OMNIROUTE_LOCAL_BASE_URL", "http://127.0.0.1:20128")
+LOCAL_API_KEY = os.environ.get("OMNIROUTE_LOCAL_API_KEY")
 
-LOCAL_FAST = os.environ.get("LOCAL_FAST", "qwen3.5:4b-q8_0")
-LOCAL_CODING = os.environ.get("LOCAL_CODING", "qwen3.5:9b-q4_K_M")
+LOCAL_FAST = os.environ.get("OMNIROUTE_LOCAL_OLLAMA_MODEL_FAST", "qwen3.5:4b-q8_0")
+LOCAL_CODING = os.environ.get(
+    "OMNIROUTE_LOCAL_OLLAMA_MODEL_CODING", "qwen3.5:9b-q4_K_M"
+)
 
 
 @pytest.fixture

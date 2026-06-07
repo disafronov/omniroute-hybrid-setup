@@ -6,14 +6,14 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 # Env must be set before importing main — req() asserts API_KEY is not None
-os.environ.setdefault("LOCAL_API_KEY", "test-key")
-os.environ.setdefault("CLOUD_API_KEY", "test-cloud-key")
-os.environ.setdefault("CLOUD_BASE_URL", "https://cloud.example.com/v1")
-os.environ.setdefault("LOCAL_BASE_URL", "http://127.0.0.1:20128")
-os.environ.setdefault("LOCAL_CODING", "qwen2.5-coder:14b")
-os.environ.setdefault("LOCAL_FAST", "qwen2.5:7b")
-os.environ.setdefault("LOCAL_REASONING", "deepseek-r1:14b")
-os.environ.setdefault("LOCAL_VISION", "qwen2.5-vl:7b")
+os.environ.setdefault("OMNIROUTE_LOCAL_API_KEY", "test-key")
+os.environ.setdefault("OMNIROUTE_CLOUD_API_KEY", "test-cloud-key")
+os.environ.setdefault("OMNIROUTE_CLOUD_BASE_URL", "https://cloud.example.com/v1")
+os.environ.setdefault("OMNIROUTE_LOCAL_BASE_URL", "http://127.0.0.1:20128")
+os.environ.setdefault("OMNIROUTE_LOCAL_OLLAMA_MODEL_CODING", "qwen2.5-coder:14b")
+os.environ.setdefault("OMNIROUTE_LOCAL_OLLAMA_MODEL_FAST", "qwen2.5:7b")
+os.environ.setdefault("OMNIROUTE_LOCAL_OLLAMA_MODEL_REASONING", "deepseek-r1:14b")
+os.environ.setdefault("OMNIROUTE_LOCAL_OLLAMA_MODEL_VISION", "qwen2.5-vl:7b")
 
 from main import (  # noqa: E402
     LOCAL_URL,
@@ -147,7 +147,7 @@ def build_side_effect():
 
 
 class TestMain:
-    @patch("main.API_KEY", None)
+    @patch("main.LOCAL_KEY", None)
     @patch("main.req")
     @patch("main.run")
     def test_missing_local_key(self, mock_run, mock_req):
@@ -183,7 +183,7 @@ class TestMain:
 
             m.main()
 
-    @patch("main.LOCAL_CODING", None)
+    @patch("main.LOCAL_OLLAMA_CODING", None)
     @patch("main.req")
     @patch("main.run")
     def test_missing_local_coding(self, mock_run, mock_req):
@@ -192,7 +192,7 @@ class TestMain:
 
             m.main()
 
-    @patch("main.LOCAL_FAST", None)
+    @patch("main.LOCAL_OLLAMA_FAST", None)
     @patch("main.req")
     @patch("main.run")
     def test_missing_local_fast(self, mock_run, mock_req):
@@ -201,7 +201,7 @@ class TestMain:
 
             m.main()
 
-    @patch("main.LOCAL_REASONING", None)
+    @patch("main.LOCAL_OLLAMA_REASONING", None)
     @patch("main.req")
     @patch("main.run")
     def test_missing_local_reasoning(self, mock_run, mock_req):
@@ -210,7 +210,7 @@ class TestMain:
 
             m.main()
 
-    @patch("main.LOCAL_VISION", None)
+    @patch("main.LOCAL_OLLAMA_VISION", None)
     @patch("main.req")
     @patch("main.run")
     def test_missing_local_vision(self, mock_run, mock_req):
@@ -229,10 +229,10 @@ class TestMain:
         # the ambient environment (.env values exported by the Makefile).
         mock_run.return_value.stdout = (
             "NAME\tID\n"
-            f"{m.LOCAL_CODING}\tabc\n"
-            f"{m.LOCAL_FAST}\tdef\n"
-            f"{m.LOCAL_REASONING}\tghi\n"
-            f"{m.LOCAL_VISION}\tjkl\n"
+            f"{m.LOCAL_OLLAMA_CODING}\tabc\n"
+            f"{m.LOCAL_OLLAMA_FAST}\tdef\n"
+            f"{m.LOCAL_OLLAMA_REASONING}\tghi\n"
+            f"{m.LOCAL_OLLAMA_VISION}\tjkl\n"
         )
         mock_req.side_effect = build_side_effect()
 
