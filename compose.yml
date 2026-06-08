@@ -33,9 +33,45 @@ configs:
     content: |
       #!/bin/sh
       set -e
-      echo '[PATCH] Fix AI_InvalidResponseDataError — normalizeResponseId for streaming chunks'
-      sed -i 's/if (parsedRecord.id !== undefined) sanitized.id = parsedRecord.id;/if (parsedRecord.id !== undefined) sanitized.id = normalizeResponseId(typeof parsedRecord.id === "string" ? parsedRecord.id : String(parsedRecord.id));/' /app/open-sse/handlers/responseSanitizer.ts
-      echo '[PATCH] Skipping stream.ts empty-choices — not present in published image'
+      echo '[PATCH] Fix AI_InvalidResponseDataError — normalize ids in streaming chunks'
+
+      CHUNK_DIR=/app/.build/next/server/chunks
+      if [ -d "$$CHUNK_DIR" ]; then
+        CHUNK=$$(grep -l "sanitizeStreamingChunk" $$CHUNK_DIR/*.js 2>/dev/null | head -1)
+        if [ -n "$$CHUNK" ]; then
+          echo "  Patching bundle: $$(basename $$CHUNK)"
+
+          # Write Node script to /tmp (avoids shell escaping issues with inline -e)
+          cat > /tmp/patch_chunk.mjs << 'NODESCRIPT'
+      import fs from 'fs';
+      const chunk = process.argv[2];
+      if (!chunk) { console.error('Usage: node patch_chunk.mjs <chunk.js>'); process.exit(1); }
+      let c = fs.readFileSync(chunk, 'utf8');
+      let n = 0;
+      c = c.replace(/void 0!==t\.id&&\(n\.id=t\.id\)/g, function(m) {
+        n++; return 'void 0!==t.id&&(n.id="string"==typeof t.id?t.id:String(t.id))';
+      });
+      c = c.replace(/void 0!==e\.tool_calls&&\(n\.tool_calls=e\.tool_calls\)/g, function(m) {
+        n++; return 'void 0!==e.tool_calls&&(Array.isArray(e.tool_calls)&&e.tool_calls.forEach(function(t){if(t&&typeof t.id==="number")t.id=String(t.id)}),n.tool_calls=e.tool_calls)';
+      });
+      if (n > 0) {
+        fs.writeFileSync(chunk, c, 'utf8');
+        console.log('  Patched ' + n + ' patterns');
+      } else {
+        console.log('  WARNING: no patterns found — already patched or chunk format changed');
+        process.exit(1);
+      }
+      NODESCRIPT
+
+          node /tmp/patch_chunk.mjs $$CHUNK
+          rm -f /tmp/patch_chunk.mjs
+        else
+          echo "  WARNING: sanitizeStreamingChunk not found in chunks"
+        fi
+      else
+        echo "  WARNING: chunks directory not found"
+      fi
+
       echo '[PATCH] Done'
 
 volumes:
