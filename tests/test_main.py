@@ -263,9 +263,9 @@ class TestMain:
             if path == "/api/combos":
                 return {
                     "combos": [
-                        {"id": "c1", "name": "auto/best-coding"},
-                        {"id": "c2", "name": "auto/best-fast"},
-                        {"id": "c3", "name": "auto/best-reasoning"},
+                        {"id": "c1", "name": "best-coding"},
+                        {"id": "c2", "name": "best-fast"},
+                        {"id": "c3", "name": "best-reasoning"},
                     ]
                 }
             if path == "/api/providers":
