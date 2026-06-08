@@ -8,8 +8,8 @@ with fallback to local ollama models when the cloud is unavailable.
 ```text
 Claude Code (or any client)
   → localhost:20128 (Docker: omniroute container)
-    → auto/best-* combo (priority routing)
-      → 1. Cloud OmniRoute
+    → best-* combo (priority routing)
+      → 1. Cloud OmniRoute (auto/best-* model)
       → 2. (fallback) Ollama local (host.docker.internal:11434/v1)
 ```
 
@@ -27,10 +27,12 @@ Local models are set via `LOCAL_CODING`, `LOCAL_FAST`, `LOCAL_REASONING`, `LOCAL
 
 | Combo | Cloud model | Env var |
 | --- | --- | --- |
-| `auto/best-coding` | `auto/best-coding` | `LOCAL_CODING` |
-| `auto/best-fast` | `auto/best-fast` | `LOCAL_FAST` |
-| `auto/best-reasoning` | `auto/best-reasoning` | `LOCAL_REASONING` |
-| `auto/best-vision` | `auto/best-vision` | `LOCAL_VISION` |
+| `best-coding` | `auto/best-coding` | `LOCAL_CODING` |
+| `best-coding-fast` | `auto/best-coding-fast` | `LOCAL_CODING` |
+| `best-fast` | `auto/best-fast` | `LOCAL_FAST` |
+| `best-vision` | `auto/best-vision` | `LOCAL_VISION` |
+| `best-reasoning` | `auto/best-reasoning` | `LOCAL_REASONING` |
+| `best-chat` | `auto/best-chat` | `LOCAL_REASONING` |
 
 ## Environment variables
 

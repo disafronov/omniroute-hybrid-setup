@@ -227,33 +227,15 @@ def main() -> None:
     # ── Step 3: Create/update tier combos ──
     print("--- Step 3: Tier combos ---")
 
-    # All 21 auto-combo names → which ollama model to fallback to
+    # Cloud combo names (auto/best-*) → which ollama model to use as fallback.
+    # Local combo name = cloud name with "auto/" prefix stripped (no slashes).
     COMBO_FALLBACK: dict[str, str] = {
-        # coding variants → LOCAL_OLLAMA_CODING
         "auto/best-coding": LOCAL_OLLAMA_CODING,
         "auto/best-coding-fast": LOCAL_OLLAMA_CODING,
-        "auto/pro-coding": LOCAL_OLLAMA_CODING,
-        "auto/coding": LOCAL_OLLAMA_CODING,
-        # fast/cheap/offline variants → LOCAL_OLLAMA_FAST
         "auto/best-fast": LOCAL_OLLAMA_FAST,
-        "auto/pro-fast": LOCAL_OLLAMA_FAST,
-        "auto/fast": LOCAL_OLLAMA_FAST,
-        "auto/cheap": LOCAL_OLLAMA_FAST,
-        "auto/offline": LOCAL_OLLAMA_FAST,
-        # vision variants → LOCAL_OLLAMA_VISION
         "auto/best-vision": LOCAL_OLLAMA_VISION,
-        "auto/pro-vision": LOCAL_OLLAMA_VISION,
-        # everything else → LOCAL_OLLAMA_REASONING
-        "auto": LOCAL_OLLAMA_REASONING,
         "auto/best-reasoning": LOCAL_OLLAMA_REASONING,
-        "auto/best-chat": LOCAL_OLLAMA_REASONING,
-        "auto/pro-reasoning": LOCAL_OLLAMA_REASONING,
-        "auto/pro-chat": LOCAL_OLLAMA_REASONING,
-        "auto/chat": LOCAL_OLLAMA_REASONING,
-        "auto/claude-opus": LOCAL_OLLAMA_REASONING,
-        "auto/claude-sonnet": LOCAL_OLLAMA_REASONING,
-        "auto/smart": LOCAL_OLLAMA_REASONING,
-        "auto/lkgp": LOCAL_OLLAMA_REASONING,
+        "auto/best-chat": LOCAL_OLLAMA_FAST,
     }
 
     combos_data = req("GET", "/api/combos")
@@ -264,16 +246,15 @@ def main() -> None:
     )
 
     for name, local_model in COMBO_FALLBACK.items():
-        print(f"Processing combo: {name}")
-
-        safe = name.replace("/", "-")
+        local_name = name.removeprefix("auto/")
+        print(f"Processing combo: {local_name} (cloud: {name})")
 
         payload = {
-            "name": name,
+            "name": local_name,
             "strategy": "priority",
             "models": [
                 {
-                    "id": f"{safe}-model-1-cloud",
+                    "id": f"{local_name}-model-1-cloud",
                     "kind": "model",
                     "model": f"{cloud_node_id}/{name}",
                     "providerId": cloud_node_id,
@@ -281,7 +262,7 @@ def main() -> None:
                     "weight": 100,
                 },
                 {
-                    "id": f"{safe}-model-2-ollama",
+                    "id": f"{local_name}-model-2-ollama",
                     "kind": "model",
                     "model": f"{ollama_node_id}/{local_model}",
                     "providerId": ollama_node_id,
@@ -293,7 +274,7 @@ def main() -> None:
 
         existing_id = None
         for c in combo_list if isinstance(combo_list, list) else []:
-            if c.get("name") == name:
+            if c.get("name") == local_name:
                 existing_id = c.get("id", "")
                 break
 
@@ -317,7 +298,7 @@ def main() -> None:
     )
     print(f"  {' '.join(tokens)} \\")
     print(
-        '    -d \'{"model":"auto/best-fast",'
+        '    -d \'{"model":"best-fast",'
         '"messages":[{"role":"user","content":"hi"}],'
         '"stream":false}\' \\'
     )
