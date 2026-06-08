@@ -3,6 +3,10 @@ name: omniroute-hybrid
 services:
   omniroute:
     image: ghcr.io/diegosouzapw/omniroute:${OMNIROUTE_LOCAL_VERSION:-latest}
+    configs:
+      - source: patch_id
+        target: /tmp/patch.sh
+    command: ["sh", "-c", "sh /tmp/patch.sh && exec node dev/run-standalone.mjs"]
     volumes:
       - omniroute_data:/app/data
     environment:
@@ -23,6 +27,17 @@ services:
       retries: 12
       start_period: 15s
     restart: unless-stopped
+
+configs:
+  patch_id:
+    content: |
+      #!/bin/sh
+      set -e
+      echo '[PATCH] Fix AI_InvalidResponseDataError — normalizeResponseId for streaming chunks'
+      sed -i 's/if (parsedRecord.id !== undefined) sanitized.id = parsedRecord.id;/sanitized.id = normalizeResponseId(parsedRecord.id);/' /app/open-sse/handlers/responseSanitizer.ts
+      echo '[PATCH] Fix stream.ts empty-choices fallback — type check on id'
+      sed -i 's#id: parsed.id || `omniroute-empty-choices-$${Date.now()}`,#id: typeof parsed.id === "string" ? parsed.id : `omniroute-empty-choices-$${Date.now()}`,#' /app/open-sse/utils/stream.ts
+      echo '[PATCH] Done'
 
 volumes:
   omniroute_data:
