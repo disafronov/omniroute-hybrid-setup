@@ -6,11 +6,33 @@ with fallback to local ollama models when the cloud is unavailable.
 ## How it works
 
 ```text
-Claude Code (or any client)
+Any client, including OpenCode agent)
   → localhost:20128 (Docker: omniroute container)
     → best-* combo (priority routing)
       → 1. Cloud OmniRoute (auto/best-* model)
       → 2. (fallback) Ollama local (host.docker.internal:11434/v1)
+
+### OpenCode Integration
+
+To use with OpenCode, configure your `opencode.json` to point to the local OmniRoute instance and use the combo names as model IDs:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "omniroute/best-coding",
+  "small_model": "omniroute/best-fast",
+  "provider": {
+    "omniroute": {
+      "options": {
+        "baseUrl": "http://127.0.0.1:20128",
+        "apiKey": "${OMNIROUTE_LOCAL_API_KEY}"
+      }
+    }
+  }
+}
+```
+
+Ensure `OMNIROUTE_LOCAL_API_KEY` is set in your environment or in the `opencode.json` directly.
 ```
 
 ## Requirements

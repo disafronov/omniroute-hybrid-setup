@@ -173,7 +173,7 @@ def main() -> None:
         {
             "name": "Cloud OmniRoute",
             "prefix": "cloud_omniroute",
-            "apiType": "responses",
+            "apiType": "chat",
             "baseUrl": CLOUD_URL,
             "type": "openai-compatible",
         },
