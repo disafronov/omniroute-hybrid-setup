@@ -34,9 +34,8 @@ configs:
       #!/bin/sh
       set -e
       echo '[PATCH] Fix AI_InvalidResponseDataError — normalizeResponseId for streaming chunks'
-      sed -i 's/if (parsedRecord.id !== undefined) sanitized.id = parsedRecord.id;/sanitized.id = normalizeResponseId(parsedRecord.id);/' /app/open-sse/handlers/responseSanitizer.ts
-      echo '[PATCH] Fix stream.ts empty-choices fallback — type check on id'
-      sed -i 's#id: parsed.id || `omniroute-empty-choices-$${Date.now()}`,#id: typeof parsed.id === "string" ? parsed.id : `omniroute-empty-choices-$${Date.now()}`,#' /app/open-sse/utils/stream.ts
+      sed -i 's/if (parsedRecord.id !== undefined) sanitized.id = parsedRecord.id;/if (parsedRecord.id !== undefined) sanitized.id = normalizeResponseId(typeof parsedRecord.id === "string" ? parsedRecord.id : String(parsedRecord.id));/' /app/open-sse/handlers/responseSanitizer.ts
+      echo '[PATCH] Skipping stream.ts empty-choices — not present in published image'
       echo '[PATCH] Done'
 
 volumes:
