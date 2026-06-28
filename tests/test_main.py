@@ -1,6 +1,5 @@
 import json
 import os
-from subprocess import CalledProcessError
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -10,10 +9,10 @@ os.environ.setdefault("OMNIROUTE_LOCAL_API_KEY", "test-key")
 os.environ.setdefault("OMNIROUTE_CLOUD_API_KEY", "test-cloud-key")
 os.environ.setdefault("OMNIROUTE_CLOUD_BASE_URL", "https://cloud.example.com/v1")
 os.environ.setdefault("OMNIROUTE_LOCAL_BASE_URL", "http://127.0.0.1:20128")
-os.environ.setdefault("OMNIROUTE_LOCAL_OLLAMA_MODEL_CODING", "qwen2.5-coder:14b")
-os.environ.setdefault("OMNIROUTE_LOCAL_OLLAMA_MODEL_FAST", "qwen2.5:7b")
-os.environ.setdefault("OMNIROUTE_LOCAL_OLLAMA_MODEL_REASONING", "deepseek-r1:14b")
-os.environ.setdefault("OMNIROUTE_LOCAL_OLLAMA_MODEL_VISION", "qwen2.5-vl:7b")
+os.environ.setdefault("OMNIROUTE_LOCAL_RUNTIME_MODEL_CODING", "qwen2.5-coder:14b")
+os.environ.setdefault("OMNIROUTE_LOCAL_RUNTIME_MODEL_FAST", "qwen2.5:7b")
+os.environ.setdefault("OMNIROUTE_LOCAL_RUNTIME_MODEL_REASONING", "deepseek-r1:14b")
+os.environ.setdefault("OMNIROUTE_LOCAL_RUNTIME_MODEL_VISION", "qwen2.5-vl:7b")
 
 from main import (  # noqa: E402
     LOCAL_URL,
@@ -149,8 +148,7 @@ def build_side_effect():
 class TestMain:
     @patch("main.LOCAL_KEY", None)
     @patch("main.req")
-    @patch("main.run")
-    def test_missing_local_key(self, mock_run, mock_req):
+    def test_missing_local_key(self, mock_req):
         with pytest.raises(SystemExit):
             import main as m
 
@@ -158,8 +156,7 @@ class TestMain:
 
     @patch("main.CLOUD_KEY", None)
     @patch("main.req")
-    @patch("main.run")
-    def test_missing_cloud_key(self, mock_run, mock_req):
+    def test_missing_cloud_key(self, mock_req):
         with pytest.raises(SystemExit):
             import main as m
 
@@ -167,8 +164,7 @@ class TestMain:
 
     @patch("main.CLOUD_URL", None)
     @patch("main.req")
-    @patch("main.run")
-    def test_missing_cloud_url(self, mock_run, mock_req):
+    def test_missing_cloud_url(self, mock_req):
         with pytest.raises(SystemExit):
             import main as m
 
@@ -176,76 +172,46 @@ class TestMain:
 
     @patch("main.LOCAL_URL", None)
     @patch("main.req")
-    @patch("main.run")
-    def test_missing_local_url(self, mock_run, mock_req):
+    def test_missing_local_url(self, mock_req):
         with pytest.raises(SystemExit):
             import main as m
 
             m.main()
 
-    @patch("main.LOCAL_OLLAMA_CODING", None)
+    @patch("main.LOCAL_RUNTIME_CODING", None)
     @patch("main.req")
-    @patch("main.run")
-    def test_missing_local_coding(self, mock_run, mock_req):
+    def test_missing_local_coding(self, mock_req):
         with pytest.raises(SystemExit):
             import main as m
 
             m.main()
 
-    @patch("main.LOCAL_OLLAMA_FAST", None)
+    @patch("main.LOCAL_RUNTIME_FAST", None)
     @patch("main.req")
-    @patch("main.run")
-    def test_missing_local_fast(self, mock_run, mock_req):
+    def test_missing_local_fast(self, mock_req):
         with pytest.raises(SystemExit):
             import main as m
 
             m.main()
 
-    @patch("main.LOCAL_OLLAMA_REASONING", None)
+    @patch("main.LOCAL_RUNTIME_REASONING", None)
     @patch("main.req")
-    @patch("main.run")
-    def test_missing_local_reasoning(self, mock_run, mock_req):
+    def test_missing_local_reasoning(self, mock_req):
         with pytest.raises(SystemExit):
             import main as m
 
             m.main()
 
-    @patch("main.LOCAL_OLLAMA_VISION", None)
+    @patch("main.LOCAL_RUNTIME_VISION", None)
     @patch("main.req")
-    @patch("main.run")
-    def test_missing_local_vision(self, mock_run, mock_req):
+    def test_missing_local_vision(self, mock_req):
         with pytest.raises(SystemExit):
             import main as m
 
             m.main()
 
     @patch("main.req")
-    @patch("main.run")
-    def test_models_already_pulled(self, mock_run, mock_req):
-        import main as m
-
-        # Mock `ollama list` to report all required models as present.
-        # Names are derived from the module so the test does not depend on
-        # the ambient environment (.env values exported by the Makefile).
-        mock_run.return_value.stdout = (
-            "NAME\tID\n"
-            f"{m.LOCAL_OLLAMA_CODING}\tabc\n"
-            f"{m.LOCAL_OLLAMA_FAST}\tdef\n"
-            f"{m.LOCAL_OLLAMA_REASONING}\tghi\n"
-            f"{m.LOCAL_OLLAMA_VISION}\tjkl\n"
-        )
-        mock_req.side_effect = build_side_effect()
-
-        m.main()
-
-        # Every model already exists, so no `ollama pull` must be issued.
-        pull_calls = [c for c in mock_run.call_args_list if "pull" in c.args[0]]
-        assert pull_calls == []
-
-    @patch("main.req")
-    @patch("main.run")
-    def test_fresh_setup(self, mock_run, mock_req):
-        mock_run.return_value.stdout = "NAME\tID\n"
+    def test_fresh_setup(self, mock_req):
         mock_req.side_effect = build_side_effect()
 
         import main as m
@@ -253,10 +219,7 @@ class TestMain:
         m.main()
 
     @patch("main.req")
-    @patch("main.run")
-    def test_re_run(self, mock_run, mock_req):
-        mock_run.return_value.stdout = "NAME\tID\n"
-
+    def test_re_run(self, mock_req):
         def side_effect(method, path, body=None):
             if path == "/api/provider-nodes":
                 return {"nodes": [{"id": "existing-node"}]}
@@ -273,37 +236,6 @@ class TestMain:
             return {}
 
         mock_req.side_effect = side_effect
-
-        import main as m
-
-        m.main()
-
-    @patch("main.req")
-    @patch("main.run")
-    def test_ollama_list_fails(self, mock_run, mock_req):
-        mock_run.side_effect = [
-            CalledProcessError(1, ["ollama", "list"]),
-            MagicMock(),
-            MagicMock(),
-            MagicMock(),
-            MagicMock(),
-        ]
-        mock_req.side_effect = build_side_effect()
-
-        import main as m
-
-        m.main()
-
-    @patch("main.req")
-    @patch("main.run")
-    def test_ollama_not_installed(self, mock_run, mock_req):
-        def run_side_effect(cmd, **kwargs):
-            if cmd == ["ollama", "list"]:
-                raise FileNotFoundError()
-            return MagicMock()
-
-        mock_run.side_effect = run_side_effect
-        mock_req.side_effect = build_side_effect()
 
         import main as m
 

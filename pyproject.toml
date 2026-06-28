@@ -1,7 +1,7 @@
 [project]
 name = "omniroute-hybrid-setup"
 version = "0.1.0"
-description = "OmniRoute hybrid setup — cloud + local ollama fallback"
+description = "OmniRoute hybrid setup — cloud + local runtime fallback"
 readme = "README.md"
 requires-python = ">=3.14"
 authors = [
@@ -48,7 +48,7 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 addopts = "--strict-markers -n auto --cov=. --cov-report=term-missing -m 'not integration'"
 markers = [
-    "integration: marks tests that require running OmniRoute + Ollama",
+    "integration: marks tests that require running OmniRoute + Runtime",
 ]
 filterwarnings = ["ignore::DeprecationWarning"]
 

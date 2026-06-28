@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 import json
 import os
-import shutil
 import sys
 import urllib.error
 import urllib.request
 from collections.abc import Callable
-from subprocess import CalledProcessError, run  # nosec
 from typing import Any, NoReturn, cast
 
 CLOUD_KEY = os.environ.get("OMNIROUTE_CLOUD_API_KEY")
@@ -15,14 +13,14 @@ CLOUD_URL = os.environ.get("OMNIROUTE_CLOUD_BASE_URL")
 LOCAL_KEY = os.environ.get("OMNIROUTE_LOCAL_API_KEY")
 LOCAL_URL = os.environ.get("OMNIROUTE_LOCAL_BASE_URL")
 
-LOCAL_OLLAMA_URL = os.environ.get(
-    "OMNIROUTE_LOCAL_OLLAMA_URL", "http://host.docker.internal:11434/v1"
+LOCAL_RUNTIME_URL = os.environ.get(
+    "OMNIROUTE_LOCAL_RUNTIME_URL", "http://host.docker.internal:11434/v1"
 )
 
-LOCAL_OLLAMA_CODING = os.environ.get("OMNIROUTE_LOCAL_OLLAMA_MODEL_CODING")
-LOCAL_OLLAMA_FAST = os.environ.get("OMNIROUTE_LOCAL_OLLAMA_MODEL_FAST")
-LOCAL_OLLAMA_REASONING = os.environ.get("OMNIROUTE_LOCAL_OLLAMA_MODEL_REASONING")
-LOCAL_OLLAMA_VISION = os.environ.get("OMNIROUTE_LOCAL_OLLAMA_MODEL_VISION")
+LOCAL_RUNTIME_CODING = os.environ.get("OMNIROUTE_LOCAL_RUNTIME_MODEL_CODING")
+LOCAL_RUNTIME_FAST = os.environ.get("OMNIROUTE_LOCAL_RUNTIME_MODEL_FAST")
+LOCAL_RUNTIME_REASONING = os.environ.get("OMNIROUTE_LOCAL_RUNTIME_MODEL_REASONING")
+LOCAL_RUNTIME_VISION = os.environ.get("OMNIROUTE_LOCAL_RUNTIME_MODEL_VISION")
 
 
 def fail(msg: str) -> NoReturn:
@@ -105,60 +103,35 @@ def main() -> None:
         fail("set OMNIROUTE_CLOUD_BASE_URL (upstream omniroute base URL)")
     if not LOCAL_URL:
         fail("set OMNIROUTE_LOCAL_BASE_URL (local omniroute base URL)")
-    if not LOCAL_OLLAMA_CODING:
-        fail("set OMNIROUTE_LOCAL_OLLAMA_MODEL_CODING (ollama model for coding combo)")
-    if not LOCAL_OLLAMA_FAST:
-        fail("set OMNIROUTE_LOCAL_OLLAMA_MODEL_FAST (ollama model for fast combo)")
-    if not LOCAL_OLLAMA_REASONING:
-        fail("set OMNIROUTE_LOCAL_OLLAMA_MODEL_REASONING (ollama reasoning model)")
-    if not LOCAL_OLLAMA_VISION:
-        fail("set OMNIROUTE_LOCAL_OLLAMA_MODEL_VISION (ollama model for vision combo)")
+    if not LOCAL_RUNTIME_CODING:
+        fail("set OMNIROUTE_LOCAL_RUNTIME_MODEL_CODING (runtime model for coding combo)")
+    if not LOCAL_RUNTIME_FAST:
+        fail("set OMNIROUTE_LOCAL_RUNTIME_MODEL_FAST (runtime model for fast combo)")
+    if not LOCAL_RUNTIME_REASONING:
+        fail("set OMNIROUTE_LOCAL_RUNTIME_MODEL_REASONING (runtime reasoning model)")
+    if not LOCAL_RUNTIME_VISION:
+        fail("set OMNIROUTE_LOCAL_RUNTIME_MODEL_VISION (runtime model for vision combo)")
     if (
         LOCAL_KEY is None
         or CLOUD_KEY is None
         or CLOUD_URL is None
         or LOCAL_URL is None
-        or LOCAL_OLLAMA_CODING is None
-        or LOCAL_OLLAMA_FAST is None
-        or LOCAL_OLLAMA_REASONING is None
-        or LOCAL_OLLAMA_VISION is None
+        or LOCAL_RUNTIME_CODING is None
+        or LOCAL_RUNTIME_FAST is None
+        or LOCAL_RUNTIME_REASONING is None
+        or LOCAL_RUNTIME_VISION is None
     ):
         raise AssertionError("env vars not set")
 
     print("=== OmniRoute Hybrid Setup ===")
 
-    # ── Step 0: Pull ollama models ──
-    print("--- Step 0: Ensure ollama models are present ---")
-    ollama_bin = shutil.which("ollama") or "ollama"
-    try:
-        r = run(
-            [ollama_bin, "list"], capture_output=True, text=True, check=True
-        )  # nosec
-        existing = [
-            line.split()[0] for line in r.stdout.strip().split("\n")[1:] if line.strip()
-        ]
-    except CalledProcessError, FileNotFoundError:
-        existing = []
-    for model in [
-        LOCAL_OLLAMA_CODING,
-        LOCAL_OLLAMA_FAST,
-        LOCAL_OLLAMA_REASONING,
-        LOCAL_OLLAMA_VISION,
-    ]:
-        if model in existing:
-            print(f"  {model} already exists, skipping")
-        else:
-            print(f"  Pulling {model}...")
-            run([ollama_bin, "pull", model], check=True)  # nosec
-    print()
-
     print(f"Local Base URL:    {LOCAL_URL}")
     print(f"Cloud Base URL:    {CLOUD_URL}")
-    print(f"Local Ollama URL:  {LOCAL_OLLAMA_URL}")
-    print(f"Coding model:      {LOCAL_OLLAMA_CODING}")
-    print(f"Fast model:        {LOCAL_OLLAMA_FAST}")
-    print(f"Reasoning model:   {LOCAL_OLLAMA_REASONING}")
-    print(f"Vision model:      {LOCAL_OLLAMA_VISION}")
+    print(f"Local Runtime URL: {LOCAL_RUNTIME_URL}")
+    print(f"Coding model:      {LOCAL_RUNTIME_CODING}")
+    print(f"Fast model:        {LOCAL_RUNTIME_FAST}")
+    print(f"Reasoning model:   {LOCAL_RUNTIME_REASONING}")
+    print(f"Vision model:      {LOCAL_RUNTIME_VISION}")
     print()
 
     # ── Step 1: Cloud parent provider node + connection ──
@@ -192,28 +165,28 @@ def main() -> None:
     )
     print()
 
-    # ── Step 2: Ollama provider node + connection ──
-    print("--- Step 2: Ollama provider ---")
+    # ── Step 2: Runtime provider node + connection ──
+    print("--- Step 2: Runtime provider ---")
 
-    target_ollama = LOCAL_OLLAMA_URL.rstrip("/").lower()
-    ollama_node_id = upsert_node(
+    target_runtime = LOCAL_RUNTIME_URL.rstrip("/").lower()
+    runtime_node_id = upsert_node(
         nodes,
         {
-            "name": "Local Ollama",
-            "prefix": "local_ollama",
+            "name": "Local Runtime",
+            "prefix": "local_runtime",
             "apiType": "chat",
-            "baseUrl": LOCAL_OLLAMA_URL,
+            "baseUrl": LOCAL_RUNTIME_URL,
             "type": "openai-compatible",
         },
         lambda n: (n.get("apiType") or "").lower() == "chat"
         and (n.get("baseUrl") or "").rstrip("/").lower()
-        in (target_ollama, target_ollama + "/"),
+        in (target_runtime, target_runtime + "/"),
     )
 
-    ollama_conn_id = upsert_connection(
-        ollama_node_id,
+    runtime_conn_id = upsert_connection(
+        runtime_node_id,
         {
-            "name": "Local Ollama",
+            "name": "Local Runtime",
             "authType": "apikey",
             "apiKey": "empty",
             "priority": 1,
@@ -227,15 +200,15 @@ def main() -> None:
     # ── Step 3: Create/update tier combos ──
     print("--- Step 3: Tier combos ---")
 
-    # Cloud combo names (auto/best-*) → which ollama model to use as fallback.
+    # Cloud combo names (auto/best-*) → which runtime model to use as fallback.
     # Local combo name = cloud name with "auto/" prefix stripped (no slashes).
     COMBO_FALLBACK: dict[str, str] = {
-        "auto/best-coding": LOCAL_OLLAMA_CODING,
-        "auto/best-coding-fast": LOCAL_OLLAMA_CODING,
-        "auto/best-fast": LOCAL_OLLAMA_FAST,
-        "auto/best-vision": LOCAL_OLLAMA_VISION,
-        "auto/best-reasoning": LOCAL_OLLAMA_REASONING,
-        "auto/best-chat": LOCAL_OLLAMA_FAST,
+        "auto/best-coding": LOCAL_RUNTIME_CODING,
+        "auto/best-coding-fast": LOCAL_RUNTIME_CODING,
+        "auto/best-fast": LOCAL_RUNTIME_FAST,
+        "auto/best-vision": LOCAL_RUNTIME_VISION,
+        "auto/best-reasoning": LOCAL_RUNTIME_REASONING,
+        "auto/best-chat": LOCAL_RUNTIME_FAST,
     }
 
     combos_data = req("GET", "/api/combos")
@@ -262,11 +235,11 @@ def main() -> None:
                     "weight": 100,
                 },
                 {
-                    "id": f"{local_name}-model-2-ollama",
+                    "id": f"{local_name}-model-2-runtime",
                     "kind": "model",
-                    "model": f"{ollama_node_id}/{local_model}",
-                    "providerId": ollama_node_id,
-                    "connectionId": ollama_conn_id,
+                    "model": f"{runtime_node_id}/{local_model}",
+                    "providerId": runtime_node_id,
+                    "connectionId": runtime_conn_id,
                     "weight": 0,
                 },
             ],
