@@ -263,19 +263,7 @@ def main() -> None:
     print()
     print("=== Done ===")
     print()
-    print("Manual smoke test:")
-    tokens = (
-        "curl -s",
-        f"-H 'Authorization: Bearer {LOCAL_KEY}'",
-        "-H 'Content-Type: application/json'",
-    )
-    print(f"  {' '.join(tokens)} \\")
-    print(
-        '    -d \'{"model":"best-fast",'
-        '"messages":[{"role":"user","content":"hi"}],'
-        '"stream":false}\' \\'
-    )
-    print(f"    {LOCAL_URL}/v1/chat/completions | python3 -m json.tool")
+    print("Smoke test: make smoke")
 
 
 if __name__ == "__main__":
