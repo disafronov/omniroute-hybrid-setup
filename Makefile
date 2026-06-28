@@ -13,7 +13,7 @@ endif
 
 ################################################################################
 
-.PHONY: all audit clean dead-code format help install lint runtime run test
+.PHONY: all audit clean dead-code format help install lint runtime run smoke test
 
 # Default target
 help: ## Show this help message
@@ -53,7 +53,7 @@ test: ## Run unit tests (excludes integration)
 	@echo "Running unit tests with coverage..."
 	$(PYTEST_CMD) $(COVERAGE_OPTS)
 
-smoke-test: ## Run integration smoke tests (requires running services)
+smoke: ## Run integration smoke tests (requires running services)
 	@echo "Running integration smoke tests..."
 	uv run python -m pytest tests/test_integration.py -v -o "addopts=" --no-header
 
