@@ -1,0 +1,47 @@
+---
+name: Lint and test
+
+"on":
+  pull_request:
+    branches:
+      - main
+      - release
+
+jobs:
+  lint_and_test:
+    name: "Lint and test"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Read Python version
+        id: python_version
+        run: echo "version=$(cat .python-version | tr -d '[:space:]')" >> $GITHUB_OUTPUT
+
+      - name: Install gettext
+        run: sudo apt-get update -y && sudo apt-get install -y gettext
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-suffix: ${{ steps.python_version.outputs.version }}
+
+      - name: Install dependencies
+        run: uv sync --frozen --python ${{ steps.python_version.outputs.version }}
+        env:
+          UV_PYTHON: ${{ steps.python_version.outputs.version }}
+
+      - name: Run all checks
+        run: make all
+        env:
+          UV_PYTHON: ${{ steps.python_version.outputs.version }}
+
+      - name: Audit dependencies
+        run: make audit
+        env:
+          UV_PYTHON: ${{ steps.python_version.outputs.version }}
