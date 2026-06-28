@@ -104,13 +104,17 @@ def main() -> None:
     if not LOCAL_URL:
         fail("set OMNIROUTE_LOCAL_BASE_URL (local omniroute base URL)")
     if not LOCAL_RUNTIME_CODING:
-        fail("set OMNIROUTE_LOCAL_RUNTIME_MODEL_CODING (runtime model for coding combo)")
+        fail(
+            "set OMNIROUTE_LOCAL_RUNTIME_MODEL_CODING (runtime model for coding combo)"
+        )
     if not LOCAL_RUNTIME_FAST:
         fail("set OMNIROUTE_LOCAL_RUNTIME_MODEL_FAST (runtime model for fast combo)")
     if not LOCAL_RUNTIME_REASONING:
         fail("set OMNIROUTE_LOCAL_RUNTIME_MODEL_REASONING (runtime reasoning model)")
     if not LOCAL_RUNTIME_VISION:
-        fail("set OMNIROUTE_LOCAL_RUNTIME_MODEL_VISION (runtime model for vision combo)")
+        fail(
+            "set OMNIROUTE_LOCAL_RUNTIME_MODEL_VISION (runtime model for vision combo)"
+        )
     if (
         LOCAL_KEY is None
         or CLOUD_KEY is None
