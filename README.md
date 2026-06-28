@@ -1,7 +1,7 @@
 # omniroute-hybrid-setup
 
 Local [OmniRoute](https://github.com/diegosouzapw/OmniRoute) (Docker) acting as a proxy in front of a cloud one
-with fallback to local ollama models when the cloud is unavailable.
+with fallback to local runtime models when the cloud is unavailable.
 
 ## How it works
 
@@ -10,7 +10,7 @@ Any client, including OpenCode agent)
   → localhost:20128 (Docker: omniroute container)
     → best-* combo (priority routing)
       → 1. Cloud OmniRoute (auto/best-* model)
-      → 2. (fallback) Ollama local (host.docker.internal:11434/v1)
+      → 2. (fallback) Local runtime (host.docker.internal:11434/v1)
 
 ### OpenCode Integration
 
@@ -39,12 +39,12 @@ Ensure `OMNIROUTE_LOCAL_API_KEY` is set in your environment or in the `opencode.
 
 - [uv](https://docs.astral.sh/uv/)
 - Docker (compose v2)
-- [ollama](https://ollama.com/) with models pulled
+- Local runtime (e.g. Ollama, vLLM) with models pulled
 - Access to an upstream OmniRoute API
 
 ## Combos
 
-The script creates priority combos with a primary cloud target and ollama fallback.
+The script creates priority combos with a primary cloud target and runtime fallback.
 Local models are set via `LOCAL_CODING`, `LOCAL_FAST`, `LOCAL_REASONING`, `LOCAL_VISION` — see [Environment variables](#environment-variables).
 
 | Combo | Cloud model | Env var |
@@ -71,11 +71,11 @@ cp .env.example .env
 | `CLOUD_API_KEY` | API key for the upstream cloud OmniRoute |
 | `CLOUD_BASE_URL` | Base URL of the upstream cloud OmniRoute |
 | `LOCAL_BASE_URL` | Local OmniRoute URL |
-| `LOCAL_OLLAMA_URL` | Ollama endpoint |
-| `LOCAL_CODING` | Ollama model for coding combo |
-| `LOCAL_FAST` | Ollama model for fast combo |
-| `LOCAL_REASONING` | Ollama model for reasoning combo |
-| `LOCAL_VISION` | Ollama model for vision combo |
+| `LOCAL_RUNTIME_URL` | Runtime endpoint |
+| `LOCAL_CODING` | Runtime model for coding combo |
+| `LOCAL_FAST` | Runtime model for fast combo |
+| `LOCAL_REASONING` | Runtime model for reasoning combo |
+| `LOCAL_VISION` | Runtime model for vision combo |
 
 ## Run
 

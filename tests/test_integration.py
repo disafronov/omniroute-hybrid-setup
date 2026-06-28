@@ -1,4 +1,4 @@
-"""Integration smoke tests — require running OmniRoute + Ollama."""
+"""Integration smoke tests — require running OmniRoute + Runtime."""
 
 import json
 import os
@@ -11,9 +11,9 @@ pytestmark = pytest.mark.integration
 LOCAL_URL = os.environ.get("OMNIROUTE_LOCAL_BASE_URL", "http://127.0.0.1:20128")
 LOCAL_API_KEY = os.environ.get("OMNIROUTE_LOCAL_API_KEY")
 
-LOCAL_FAST = os.environ.get("OMNIROUTE_LOCAL_OLLAMA_MODEL_FAST", "qwen3.5:4b-q8_0")
+LOCAL_FAST = os.environ.get("OMNIROUTE_LOCAL_RUNTIME_MODEL_FAST", "qwen3.5:4b-q8_0")
 LOCAL_CODING = os.environ.get(
-    "OMNIROUTE_LOCAL_OLLAMA_MODEL_CODING", "qwen3.5:9b-q4_K_M"
+    "OMNIROUTE_LOCAL_RUNTIME_MODEL_CODING", "qwen3.5:9b-q4_K_M"
 )
 
 
@@ -39,7 +39,7 @@ class TestNonStreaming:
     def test_fast_model_returns_content(self, headers):
         req = _request(
             {
-                "model": f"local_ollama/{LOCAL_FAST}",
+                "model": f"local_runtime/{LOCAL_FAST}",
                 "messages": [{"role": "user", "content": "say hi in 2 words"}],
                 "stream": False,
             },
@@ -54,7 +54,7 @@ class TestNonStreaming:
     def test_coding_model_returns_content(self, headers):
         req = _request(
             {
-                "model": f"local_ollama/{LOCAL_CODING}",
+                "model": f"local_runtime/{LOCAL_CODING}",
                 "messages": [{"role": "user", "content": "say hi in 2 words"}],
                 "stream": False,
             },
@@ -71,7 +71,7 @@ class TestStreaming:
     def test_fast_model_streams_first_chunk(self, headers):
         req = _request(
             {
-                "model": f"local_ollama/{LOCAL_FAST}",
+                "model": f"local_runtime/{LOCAL_FAST}",
                 "messages": [{"role": "user", "content": "say hi in 2 words"}],
                 "stream": True,
             },
@@ -89,7 +89,7 @@ class TestStreaming:
     def test_coding_model_streams_first_chunk(self, headers):
         req = _request(
             {
-                "model": f"local_ollama/{LOCAL_CODING}",
+                "model": f"local_runtime/{LOCAL_CODING}",
                 "messages": [{"role": "user", "content": "say hi in 2 words"}],
                 "stream": True,
             },

@@ -84,7 +84,7 @@ configs:
         [/([a-z])=([a-z])\.parsed,([a-z])=\2\.textualToolCallConverted\}/g, '$$1=$$2.parsed,$$3=$$2.textualToolCallConverted;try{Array.isArray($$1?.choices?.[0]?.delta?.tool_calls)&&($$3=!0)}catch{}}'],
         [/id:([a-z])\.id,type:\1\.type,function:/g, 'id:null!=$$1.id?String($$1.id):null,type:$$1.type,function:'],
 
-        // Ollama transform pending tool call ids
+        // Transform pending tool call ids for local runtime
         [/\{id:([a-z])\.id,function:\{name:"",arguments:""\}\}/g, '{id:$$1.id!=null?String($$1.id):$$1.id,function:{name:"",arguments:""}}'],
 
         // Rerank response ids, preserving numeric 0
