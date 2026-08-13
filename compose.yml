@@ -3,10 +3,6 @@ name: omniroute-hybrid
 services:
   omniroute:
     image: ghcr.io/diegosouzapw/omniroute:${OMNIROUTE_LOCAL_VERSION:-latest}
-    configs:
-      - source: patch_id
-        target: /tmp/patch.sh
-    command: ["sh", "-c", "sh /tmp/patch.sh && exec node dev/run-standalone.mjs"]
     volumes:
       - omniroute_data:/app/data
     environment:
@@ -27,106 +23,6 @@ services:
       retries: 12
       start_period: 15s
     restart: unless-stopped
-
-configs:
-  patch_id:
-    content: |
-      #!/bin/sh
-      set -e
-      echo '[PATCH] Fix AI_InvalidResponseDataError — normalize provider ids to strings'
-
-      CHUNK_DIR=/app/.build/next/server/chunks
-      if [ -d "$$CHUNK_DIR" ]; then
-        # Write Node script to /tmp (avoids shell escaping issues with inline -e)
-        cat > /tmp/patch_chunks.mjs << 'NODESCRIPT'
-      import fs from 'fs';
-      import path from 'path';
-
-      const chunkDir = process.argv[2];
-      if (!chunkDir) {
-        console.error('Usage: node patch_chunks.mjs <chunks-dir>');
-        process.exit(1);
-      }
-
-      const files = fs.readdirSync(chunkDir)
-        .filter((file) => file.endsWith('.js'))
-        .map((file) => path.join(chunkDir, file));
-
-      const replacements = [
-        // responseSanitizer / sanitizeStreamingChunk: top-level id + streamed tool_calls[].id
-        [
-          /void 0!==([a-z])\.id&&\(([a-z])\.id=\1\.id\)/g,
-          'void 0!==$$1.id&&null!==$$1.id&&($$2.id="string"==typeof $$1.id?$$1.id:String($$1.id))',
-        ],
-        [
-          /void 0!==([a-z])\.tool_calls&&\(([a-z])\.tool_calls=\1\.tool_calls\)/g,
-          'void 0!==$$1.tool_calls&&($$2.tool_calls=Array.isArray($$1.tool_calls)?$$1.tool_calls.map(function(t){return t&&"object"==typeof t&&void 0!==t.id&&null!==t.id&&"string"!=typeof t.id?{...t,id:String(t.id)}:t}):$$1.tool_calls)',
-        ],
-
-        // sseParser: Chat Completions top-level id + tool_call ids
-        [/(\.id=\1\.id\|\|)([a-z])\.id\)/g, '$$1String($$2.id))'],
-        [/([a-z])\.id=\1\.id\|\|([a-z])\.id/g, '$$1.id=$$1.id||String($$2.id)'],
-        [/\{id:([a-z])\?\.id\?\?null,index:/g, '{id:$$1?.id!=null?String($$1.id):null,index:'],
-        [/id:([a-z])\?\.id\?\?null,index:/g, 'id:$$1?.id!=null?String($$1.id):null,index:'],
-        [/id:([a-z])\.id\|\|`chatcmpl-\$$\{Date\.now\(\)\}`/g, 'id:null!=$$1.id?String($$1.id):`chatcmpl-$${Date.now()}`'],
-
-        // sseParser: Responses API output item ids and response id
-        [/function ([a-z])\(([a-z])\)\{let ([a-z])=([a-z])\(\2\);return\{\.\.\.\3,/g, 'function $$1($$2){let $$3=$$4($$2);return{...$$3,id:null!=$$3.id?String($$3.id):$$3.id,'],
-        [/id:([a-z])\?\.id\|\|`msg_\$$\{Date\.now\(\)\}_\$$\{([a-z])\}`/g, 'id:null!=$$1?.id?String($$1.id):`msg_$${Date.now()}_$${$$2}`'],
-        [/id:([a-z])\|\|([a-z])\?\.id\|\|`rs_\$$\{Date\.now\(\)\}_\$$\{([a-z])\}`/g, 'id:$$1||(null!=$$2?.id?String($$2.id):`rs_$${Date.now()}_$${$$3}`)'],
-        [/id:([a-z])\|\|([a-z])\?\.id\|\|`fc_\$$\{([a-z])\|\|`\$$\{Date\.now\(\)\}_\$$\{([a-z])\}`\}`/g, 'id:$$1||(null!=$$2?.id?String($$2.id):`fc_$${$$3||`$${Date.now()}_$${$$4}`}`)'],
-        [/return\{id:([a-z])\.id\|\|`resp_\$$\{Date\.now\(\)\}`,object:\1\.object\|\|"response",model:\1\.model\|\|([a-z])\|\|"unknown",output:([a-z])\.length>0\?\3:([a-z]),/g, 'return{id:null!=$$1.id?String($$1.id):`resp_$${Date.now()}`,object:$$1.object||"response",model:$$1.model||$$2||"unknown",output:($$3.length>0?$$3:$$4).map(function(e){return e&&"object"==typeof e?{...e,id:null!=e.id?String(e.id):e.id}:e}),'],
-
-        // stream.ts helpers/final payloads/passthrough chunks
-        [/function ([a-zA-Z_$$][\w$$]*)\(e\)\{return\{type:"function_call",id:e\.id\|\|`fc_\$$\{e\.index\}`,call_id:e\.id\|\|`call_\$$\{e\.index\}`,/g, 'function $$1(e){let t=null!=e.id?String(e.id):null;return{type:"function_call",id:t||`fc_$${e.index}`,call_id:t||`call_$${e.index}`,'],
-        [/([a-z])\?\.id&&\(([a-z])\.id=\2\.id\|\|\1\.id\)/g, '$$1?.id&&($$2.id=$$2.id||String($$1.id))'],
-        [/map\(([a-z])=>\(\{id:\1\.id\?\?null,index:/g, 'map($$1=>({id:null!=$$1.id?String($$1.id):null,index:'],
-        [/([a-z])=([a-z])\.parsed,([a-z])=\2\.textualToolCallConverted\}/g, '$$1=$$2.parsed,$$3=$$2.textualToolCallConverted;try{Array.isArray($$1?.choices?.[0]?.delta?.tool_calls)&&($$3=!0)}catch{}}'],
-        [/id:([a-z])\.id,type:\1\.type,function:/g, 'id:null!=$$1.id?String($$1.id):null,type:$$1.type,function:'],
-
-        // Transform pending tool call ids for local runtime
-        [/\{id:([a-z])\.id,function:\{name:"",arguments:""\}\}/g, '{id:$$1.id!=null?String($$1.id):$$1.id,function:{name:"",arguments:""}}'],
-
-        // Rerank response ids, preserving numeric 0
-        [/id:([a-z])\.id\|\|`rerank-\$$\{Date\.now\(\)\}`/g, 'id:null!=$$1.id?String($$1.id):`rerank-$${Date.now()}`'],
-      ];
-
-      let total = 0;
-      const touched = [];
-
-      for (const file of files) {
-        let code = fs.readFileSync(file, 'utf8');
-        const before = code;
-        let count = 0;
-        for (const [pattern, replacement] of replacements) {
-          const matches = code.match(pattern);
-          if (!matches) continue;
-          count += matches.length;
-          code = code.replace(pattern, replacement);
-        }
-        if (code !== before) {
-          fs.writeFileSync(file, code, 'utf8');
-          total += count;
-          touched.push(`$${path.basename(file)}:$${count}`);
-        }
-      }
-
-      if (total === 0) {
-        console.log('  WARNING: no patterns found — already patched or chunk format changed');
-        process.exit(1);
-      }
-
-      console.log(`  Patched $${total} patterns in $${touched.length} chunks`);
-      for (const item of touched) console.log(`    $${item}`);
-      NODESCRIPT
-
-        node /tmp/patch_chunks.mjs $$CHUNK_DIR
-        rm -f /tmp/patch_chunks.mjs
-      else
-        echo "  WARNING: chunks directory not found"
-      fi
-
-      echo '[PATCH] Done'
 
 volumes:
   omniroute_data:
