@@ -62,7 +62,7 @@ All variables — including models and endpoints — are set in [`.env.example`]
 Copy it and fill in your keys & other values:
 
 ```bash
-cp .env.example .env
+cp env.example .env
 ```
 
 | Variable | Description |
