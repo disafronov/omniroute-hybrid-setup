@@ -227,6 +227,7 @@ class TestMain:
 
         m.main()
 
+    @patch("main.LOCAL_RUNTIME_CODING_FAST", "coding-fast-model")
     @patch("main.req")
     def test_coding_fast_combo_uses_dedicated_runtime_model(self, mock_req):
         mock_req.side_effect = build_side_effect()
@@ -240,8 +241,10 @@ class TestMain:
             for call in mock_req.call_args_list
             if call.args[:2] == ("POST", "/api/combos")
         ]
-        coding_fast = next(payload for payload in payloads if payload["name"] == "best-coding-fast")
-        assert coding_fast["models"][1]["model"].endswith("/qwen2.5-coder:7b")
+        coding_fast = next(
+            payload for payload in payloads if payload["name"] == "best-coding-fast"
+        )
+        assert coding_fast["models"][1]["model"].endswith("/coding-fast-model")
 
     @patch("main.req")
     def test_re_run(self, mock_req):
