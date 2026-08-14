@@ -7,7 +7,7 @@ requires-python = ">=3.14"
 authors = [
     {name = "Dmitrii Safronov", email = "dhameoelin+omniroute-hybrid-setup@gmail.com"}
 ]
-dependencies = ["pip>=26.2"]
+dependencies = ["pip>=26.2.1"]
 
 [dependency-groups]
 dev = [
