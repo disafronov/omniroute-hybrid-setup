@@ -18,6 +18,9 @@ LOCAL_RUNTIME_URL = os.environ.get(
 )
 
 LOCAL_RUNTIME_CODING = os.environ.get("OMNIROUTE_LOCAL_RUNTIME_MODEL_CODING")
+LOCAL_RUNTIME_CODING_FAST = os.environ.get(
+    "OMNIROUTE_LOCAL_RUNTIME_MODEL_CODING_FAST"
+)
 LOCAL_RUNTIME_FAST = os.environ.get("OMNIROUTE_LOCAL_RUNTIME_MODEL_FAST")
 LOCAL_RUNTIME_REASONING = os.environ.get("OMNIROUTE_LOCAL_RUNTIME_MODEL_REASONING")
 LOCAL_RUNTIME_VISION = os.environ.get("OMNIROUTE_LOCAL_RUNTIME_MODEL_VISION")
@@ -107,6 +110,11 @@ def main() -> None:
         fail(
             "set OMNIROUTE_LOCAL_RUNTIME_MODEL_CODING (runtime model for coding combo)"
         )
+    if not LOCAL_RUNTIME_CODING_FAST:
+        fail(
+            "set OMNIROUTE_LOCAL_RUNTIME_MODEL_CODING_FAST "
+            "(runtime model for fast coding combo)"
+        )
     if not LOCAL_RUNTIME_FAST:
         fail("set OMNIROUTE_LOCAL_RUNTIME_MODEL_FAST (runtime model for fast combo)")
     if not LOCAL_RUNTIME_REASONING:
@@ -121,6 +129,7 @@ def main() -> None:
         or CLOUD_URL is None
         or LOCAL_URL is None
         or LOCAL_RUNTIME_CODING is None
+        or LOCAL_RUNTIME_CODING_FAST is None
         or LOCAL_RUNTIME_FAST is None
         or LOCAL_RUNTIME_REASONING is None
         or LOCAL_RUNTIME_VISION is None
@@ -133,6 +142,7 @@ def main() -> None:
     print(f"Cloud Base URL:    {CLOUD_URL}")
     print(f"Local Runtime URL: {LOCAL_RUNTIME_URL}")
     print(f"Coding model:      {LOCAL_RUNTIME_CODING}")
+    print(f"Coding fast model: {LOCAL_RUNTIME_CODING_FAST}")
     print(f"Fast model:        {LOCAL_RUNTIME_FAST}")
     print(f"Reasoning model:   {LOCAL_RUNTIME_REASONING}")
     print(f"Vision model:      {LOCAL_RUNTIME_VISION}")
@@ -208,7 +218,7 @@ def main() -> None:
     # Local combo name = cloud name with "auto/" prefix stripped (no slashes).
     COMBO_FALLBACK: dict[str, str] = {
         "auto/best-coding": LOCAL_RUNTIME_CODING,
-        "auto/best-coding-fast": LOCAL_RUNTIME_CODING,
+        "auto/best-coding-fast": LOCAL_RUNTIME_CODING_FAST,
         "auto/best-fast": LOCAL_RUNTIME_FAST,
         "auto/best-vision": LOCAL_RUNTIME_VISION,
         "auto/best-reasoning": LOCAL_RUNTIME_REASONING,

@@ -45,16 +45,16 @@ Ensure `OMNIROUTE_LOCAL_API_KEY` is set in your environment or in the `opencode.
 ## Combos
 
 The script creates priority combos with a primary cloud target and runtime fallback.
-Local models are set via `LOCAL_CODING`, `LOCAL_FAST`, `LOCAL_REASONING`, `LOCAL_VISION` — see [Environment variables](#environment-variables).
+Local models are set via the `OMNIROUTE_LOCAL_RUNTIME_MODEL_*` variables — see [Environment variables](#environment-variables).
 
 | Combo | Cloud model | Env var |
 | --- | --- | --- |
-| `best-coding` | `auto/best-coding` | `LOCAL_CODING` |
-| `best-coding-fast` | `auto/best-coding-fast` | `LOCAL_CODING` |
-| `best-fast` | `auto/best-fast` | `LOCAL_FAST` |
-| `best-vision` | `auto/best-vision` | `LOCAL_VISION` |
-| `best-reasoning` | `auto/best-reasoning` | `LOCAL_REASONING` |
-| `best-chat` | `auto/best-chat` | `LOCAL_REASONING` |
+| `best-coding` | `auto/best-coding` | `OMNIROUTE_LOCAL_RUNTIME_MODEL_CODING` |
+| `best-coding-fast` | `auto/best-coding-fast` | `OMNIROUTE_LOCAL_RUNTIME_MODEL_CODING_FAST` |
+| `best-fast` | `auto/best-fast` | `OMNIROUTE_LOCAL_RUNTIME_MODEL_FAST` |
+| `best-vision` | `auto/best-vision` | `OMNIROUTE_LOCAL_RUNTIME_MODEL_VISION` |
+| `best-reasoning` | `auto/best-reasoning` | `OMNIROUTE_LOCAL_RUNTIME_MODEL_REASONING` |
+| `best-chat` | `auto/best-chat` | `OMNIROUTE_LOCAL_RUNTIME_MODEL_FAST` |
 
 ## Environment variables
 
@@ -67,15 +67,16 @@ cp env.example .env
 
 | Variable | Description |
 | --- | --- |
-| `LOCAL_API_KEY` | API key for the local OmniRoute instance |
-| `CLOUD_API_KEY` | API key for the upstream cloud OmniRoute |
-| `CLOUD_BASE_URL` | Base URL of the upstream cloud OmniRoute |
-| `LOCAL_BASE_URL` | Local OmniRoute URL |
-| `LOCAL_RUNTIME_URL` | Runtime endpoint |
-| `LOCAL_CODING` | Runtime model for coding combo |
-| `LOCAL_FAST` | Runtime model for fast combo |
-| `LOCAL_REASONING` | Runtime model for reasoning combo |
-| `LOCAL_VISION` | Runtime model for vision combo |
+| `OMNIROUTE_LOCAL_API_KEY` | API key for the local OmniRoute instance |
+| `OMNIROUTE_CLOUD_API_KEY` | API key for the upstream cloud OmniRoute |
+| `OMNIROUTE_CLOUD_BASE_URL` | Base URL of the upstream cloud OmniRoute |
+| `OMNIROUTE_LOCAL_BASE_URL` | Local OmniRoute URL |
+| `OMNIROUTE_LOCAL_RUNTIME_URL` | Runtime endpoint |
+| `OMNIROUTE_LOCAL_RUNTIME_MODEL_CODING` | Runtime model for coding combo |
+| `OMNIROUTE_LOCAL_RUNTIME_MODEL_CODING_FAST` | Runtime model for fast coding combo |
+| `OMNIROUTE_LOCAL_RUNTIME_MODEL_FAST` | Runtime model for fast combo |
+| `OMNIROUTE_LOCAL_RUNTIME_MODEL_REASONING` | Runtime model for reasoning combo |
+| `OMNIROUTE_LOCAL_RUNTIME_MODEL_VISION` | Runtime model for vision combo |
 
 ## Run
 
