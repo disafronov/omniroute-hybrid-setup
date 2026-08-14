@@ -10,6 +10,7 @@ os.environ.setdefault("OMNIROUTE_CLOUD_API_KEY", "test-cloud-key")
 os.environ.setdefault("OMNIROUTE_CLOUD_BASE_URL", "https://cloud.example.com/v1")
 os.environ.setdefault("OMNIROUTE_LOCAL_BASE_URL", "http://127.0.0.1:20128")
 os.environ.setdefault("OMNIROUTE_LOCAL_RUNTIME_MODEL_CODING", "qwen2.5-coder:14b")
+os.environ.setdefault("OMNIROUTE_LOCAL_RUNTIME_MODEL_CODING_FAST", "qwen2.5-coder:7b")
 os.environ.setdefault("OMNIROUTE_LOCAL_RUNTIME_MODEL_FAST", "qwen2.5:7b")
 os.environ.setdefault("OMNIROUTE_LOCAL_RUNTIME_MODEL_REASONING", "deepseek-r1:14b")
 os.environ.setdefault("OMNIROUTE_LOCAL_RUNTIME_MODEL_VISION", "qwen2.5-vl:7b")
@@ -186,6 +187,14 @@ class TestMain:
 
             m.main()
 
+    @patch("main.LOCAL_RUNTIME_CODING_FAST", None)
+    @patch("main.req")
+    def test_missing_local_coding_fast(self, mock_req):
+        with pytest.raises(SystemExit):
+            import main as m
+
+            m.main()
+
     @patch("main.LOCAL_RUNTIME_FAST", None)
     @patch("main.req")
     def test_missing_local_fast(self, mock_req):
@@ -217,6 +226,22 @@ class TestMain:
         import main as m
 
         m.main()
+
+    @patch("main.req")
+    def test_coding_fast_combo_uses_dedicated_runtime_model(self, mock_req):
+        mock_req.side_effect = build_side_effect()
+
+        import main as m
+
+        m.main()
+
+        payloads = [
+            call.args[2]
+            for call in mock_req.call_args_list
+            if call.args[:2] == ("POST", "/api/combos")
+        ]
+        coding_fast = next(payload for payload in payloads if payload["name"] == "best-coding-fast")
+        assert coding_fast["models"][1]["model"].endswith("/qwen2.5-coder:7b")
 
     @patch("main.req")
     def test_re_run(self, mock_req):
