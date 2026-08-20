@@ -11,28 +11,6 @@ Any client, including OpenCode agent)
     → best-* combo (priority routing)
       → 1. Cloud OmniRoute (auto/best-* model)
       → 2. (fallback) Local runtime (host.docker.internal:11434/v1)
-
-### OpenCode Integration
-
-To use with OpenCode, configure your `opencode.json` to point to the local OmniRoute instance and use the combo names as model IDs:
-
-```json
-{
-  "$schema": "https://opencode.ai/config.json",
-  "model": "omniroute/best-coding",
-  "small_model": "omniroute/best-fast",
-  "provider": {
-    "omniroute": {
-      "options": {
-        "baseUrl": "http://127.0.0.1:20128",
-        "apiKey": "${OMNIROUTE_LOCAL_API_KEY}"
-      }
-    }
-  }
-}
-```
-
-Ensure `OMNIROUTE_LOCAL_API_KEY` is set in your environment or in the `opencode.json` directly.
 ```
 
 ## Requirements
@@ -58,7 +36,7 @@ Local models are set via the `OMNIROUTE_LOCAL_RUNTIME_MODEL_*` variables — see
 
 ## Environment variables
 
-All variables — including models and endpoints — are set in [`.env.example`](.env.example).
+All variables — including models and endpoints — are set in [`env.example`](env.example).
 Copy it and fill in your keys & other values:
 
 ```bash
@@ -80,13 +58,41 @@ cp env.example .env
 
 ## Run
 
+### 1. Install runtime dependencies
+
 ```bash
-# 1. Install runtime dependencies
 make runtime
+```
+### 2. Start local OmniRoute (requires .env — see above)
 
-# 2. Start local OmniRoute (requires .env — see above)
+```bash
 docker compose up -d
+```
 
-# 3. Configure combos
+### 3. Configure combos
+
+```bash
 make run
 ```
+
+## OpenCode Integration
+
+To use with OpenCode, configure your `opencode.json` to point to the local OmniRoute instance and use the combo names as model IDs:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "omniroute/best-coding",
+  "small_model": "omniroute/best-fast",
+  "provider": {
+    "omniroute": {
+      "options": {
+        "baseUrl": "http://127.0.0.1:20128",
+        "apiKey": "${OMNIROUTE_LOCAL_API_KEY}"
+      }
+    }
+  }
+}
+```
+
+Ensure `OMNIROUTE_LOCAL_API_KEY` is set in your environment or in the `opencode.json` directly.
