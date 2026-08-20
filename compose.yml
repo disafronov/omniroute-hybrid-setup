@@ -5,12 +5,12 @@ services:
     image: ghcr.io/diegosouzapw/omniroute:${OMNIROUTE_LOCAL_VERSION:-latest}
     volumes:
       - omniroute_data:/app/data
+    env_file:
+      - ./omniroute.env
     environment:
       - NODE_ENV=production
       - DATA_DIR=/app/data
-      - REQUIRE_API_KEY=true
       - OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS=true
-      - OMNIROUTE_DISABLE_BACKGROUND_SERVICES=true
       - OMNIROUTE_API_KEY=${OMNIROUTE_LOCAL_API_KEY}
       - INITIAL_PASSWORD
     ports:
