@@ -1,0 +1,26 @@
+---
+name: Audit
+"on":
+  pull_request:
+    branches: [main, release]
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - name: Read Python version
+        id: python_version
+        run: echo "version=$(cat .python-version | tr -d '[:space:]')" >> $GITHUB_OUTPUT
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-suffix: ${{ steps.python_version.outputs.version }}
+      - name: Audit dependencies
+        run: make audit
+        env:
+          UV_PYTHON: ${{ steps.python_version.outputs.version }}

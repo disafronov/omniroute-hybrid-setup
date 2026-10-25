@@ -41,7 +41,3 @@ jobs:
         env:
           UV_PYTHON: ${{ steps.python_version.outputs.version }}
 
-      - name: Audit dependencies
-        run: make audit
-        env:
-          UV_PYTHON: ${{ steps.python_version.outputs.version }}
