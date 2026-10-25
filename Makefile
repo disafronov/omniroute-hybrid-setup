@@ -2,7 +2,9 @@
 PYTHON_VERSION := $(shell tr -d '[:space:]' < .python-version)
 
 # Variables
-PYTEST_CMD = uv run python -m pytest -v
+UV = uv
+UV_RUN = $(UV) run --locked
+PYTEST_CMD = $(UV_RUN) python -m pytest -v
 COVERAGE_OPTS = --cov --cov-report=term-missing --cov-report=html
 
 # Include environment file
@@ -25,28 +27,28 @@ help: ## Show this help message
 # Development
 install: ## Install all dependencies (including dev)
 	@echo "Installing dependencies..."
-	uv python install $(PYTHON_VERSION)
-	uv sync --python $(PYTHON_VERSION)
+	$(UV) python install $(PYTHON_VERSION)
+	$(UV) sync --locked --python $(PYTHON_VERSION)
 	@echo "Installing pre-commit hooks..."
-	uv run pre-commit install
+	$(UV_RUN) pre-commit install
 
 runtime: ## Install runtime dependencies only
 	@echo "Installing runtime dependencies..."
-	uv python install $(PYTHON_VERSION)
-	uv sync --python $(PYTHON_VERSION) --no-group dev
+	$(UV) python install $(PYTHON_VERSION)
+	$(UV) sync --locked --python $(PYTHON_VERSION) --no-group dev
 
 # Code quality
 format: ## Format code
 	@echo "Formatting code..."
-	uv run black . && uv run isort .
+	$(UV_RUN) black . && $(UV_RUN) isort .
 
 lint: ## Run linting tools
 	@echo "Running linting tools..."
-	uv run black --check . && uv run isort --check-only . && uv run flake8 . && uv run mypy . && uv run bandit -r -c pyproject.toml .
+	$(UV_RUN) black --check . && $(UV_RUN) isort --check-only . && $(UV_RUN) flake8 . && $(UV_RUN) mypy . && $(UV_RUN) bandit -r -c pyproject.toml .
 
 dead-code: ## Check for dead code using vulture
 	@echo "Checking for dead code..."
-	uv run vulture .
+	$(UV_RUN) vulture .
 
 # Testing
 test: ## Run unit tests (excludes integration)
@@ -55,12 +57,12 @@ test: ## Run unit tests (excludes integration)
 
 smoke: ## Run integration smoke tests (requires running services)
 	@echo "Running integration smoke tests..."
-	uv run python -m pytest tests/test_integration.py -v -o "addopts=" --no-header
+	$(UV_RUN) python -m pytest tests/test_integration.py -v -o "addopts=" --no-header
 
 # Combined operations
 audit: ## Check dependencies for known vulnerabilities
 	@echo "Auditing dependencies..."
-	uv run pip-audit
+	$(UV_RUN) pip-audit
 
 all: lint test dead-code ## Run lint, test, and dead-code check
 	@echo "All checks completed successfully!"
@@ -68,7 +70,7 @@ all: lint test dead-code ## Run lint, test, and dead-code check
 # Application
 run: ## Run the setup script (requires LOCAL_API_KEY, CLOUD_API_KEY, CLOUD_BASE_URL)
 	@echo "Running setup..."
-	uv run python main.py
+	$(UV_RUN) python main.py
 
 # Maintenance
 clean: ## Clean cache and temporary files
