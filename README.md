@@ -97,5 +97,4 @@ To use with OpenCode, configure your `opencode.json` to point to the local OmniR
 
 Ensure `OMNIROUTE_LOCAL_API_KEY` is set in your environment or in the `opencode.json` directly.
 
-<-- refactor: deps -->
-
+<-- refactor: deps 2 -->
