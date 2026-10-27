@@ -1,3 +1,5 @@
+## [1.2.3](https://github.com/disafronov/omniroute-hybrid-setup/compare/v1.2.2...v1.2.3) (2026-10-27)
+
 ## [1.2.2](https://github.com/disafronov/omniroute-hybrid-setup/compare/v1.2.1...v1.2.2) (2026-10-25)
 
 ## [1.2.1](https://github.com/disafronov/omniroute-hybrid-setup/compare/v1.2.0...v1.2.1) (2026-10-25)
