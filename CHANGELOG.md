@@ -1,3 +1,9 @@
+## [1.2.5](https://github.com/disafronov/omniroute-hybrid-setup/compare/v1.2.4...v1.2.5) (2026-11-02)
+
+### Code Refactoring
+
+* deps ([5b24833](https://github.com/disafronov/omniroute-hybrid-setup/commit/5b2483374e50a07fa52952a34a5846153d665144))
+
 ## [1.2.4](https://github.com/disafronov/omniroute-hybrid-setup/compare/v1.2.3...v1.2.4) (2026-10-30)
 
 ### Code Refactoring

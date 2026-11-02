@@ -1,6 +1,6 @@
 [project]
 name = "omniroute-hybrid-setup"
-version = "0.1.0"
+version = "1.2.5"
 description = "OmniRoute hybrid setup — cloud + local runtime fallback"
 readme = "README.md"
 requires-python = ">=3.14"
